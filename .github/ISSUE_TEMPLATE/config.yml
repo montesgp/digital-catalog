@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Project documentation
+    url: https://github.com/montesgp/digital-catalog#readme
+    about: Read setup, architecture, and contribution guidance before opening an issue.
+  - name: Security policy
+    url: https://github.com/montesgp/digital-catalog/security/policy
+    about: Use private vulnerability reporting for security concerns when it is available.
