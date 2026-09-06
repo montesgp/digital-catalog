@@ -1,0 +1,80 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize, labeled, unlabeled]
+
+concurrency:
+  group: pr-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  branch-name:
+    name: Check branch name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch naming and promotion path
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const base = context.payload.pull_request.base.ref;
+            const head = context.payload.pull_request.head.ref;
+            const pattern = /^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert)\/[a-z0-9._-]+$/;
+
+            if (base === 'main') {
+              if (head !== 'dev') {
+                core.setFailed(`PRs to main must come from the 'dev' branch (promotion). Head branch is '${head}'.`);
+              }
+              return;
+            }
+
+            if (base === 'dev' && !pattern.test(head)) {
+              core.setFailed(`Branch '${head}' must use a documented Conventional Commit prefix (for example, feat/my-change).`);
+            }
+
+  type-label:
+    name: Check type label
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require exactly one type:* label
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const labels = context.payload.pull_request.labels.map((label) => label.name);
+            const typeLabels = labels.filter((name) => name.startsWith('type:'));
+
+            if (typeLabels.length === 0) {
+              core.setFailed('This PR must have exactly one type:* label.');
+            } else if (typeLabels.length > 1) {
+              core.setFailed(`This PR has multiple type:* labels: ${typeLabels.join(', ')}.`);
+            }
+
+  linked-issue:
+    name: Check linked issue when referenced
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate an explicitly referenced issue
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const body = context.payload.pull_request.body || '';
+            const match = body.match(/(?:closes|fixes|resolves|refs|references|part of|related to)\s+#(\d+)/i);
+
+            if (!match) {
+              core.notice('No issue reference detected. Linking an issue is recommended but optional.');
+              return;
+            }
+
+            const issueNumber = Number(match[1]);
+            try {
+              const issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
+              console.log(`Referenced issue #${issueNumber} exists: "${issue.data.title}"`);
+            } catch {
+              core.setFailed(`Referenced issue #${issueNumber} does not exist or is not accessible.`);
+            }
