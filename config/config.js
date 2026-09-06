@@ -7,10 +7,10 @@ export const storeConfig = {
     subtitle: "Arabian and Exclusive Designer Perfumes",
     copyright: "2025 Bergbach - Fragancias de Oriente. All rights reserved.",
     title: "Fragancias de Oriente - Catalog",
-    url: "https://bergbach-fragrance.github.io/catalog/",
+    url: "https://montesgp.github.io/digital-catalog/",
     // Imagen destinada a los preview de los enlaces.
     previewImage:
-      "https://bergbach-fragrance.github.io/catalog/imgs/bergbach-fragrance-preliminar.jpg",
+      "https://montesgp.github.io/digital-catalog/imgs/bergbach-fragrance-preliminar.jpg",
     loader: {
       //animationUrl: 'https://assets9.lottiefiles.com/packages/lf20_usmfx6bp.json',
       animationUrl: "./assets/animations/loader_animation.json",
